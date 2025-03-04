@@ -1,0 +1,9 @@
+
+{
+  "name": "github-pages-static-build",
+  "private": true,
+  "scripts": {
+    "build:static": "vite build --config vite.config.static.ts",
+    "preview:static": "vite preview --config vite.config.static.ts"
+  }
+}
