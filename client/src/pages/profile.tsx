@@ -15,7 +15,7 @@ const profileSchema = z.object({
   name: z.string().min(2),
   phoneNumber: z.string().min(7, "Phone number must be at least 7 digits").optional(),
   currentProvider: z.string().optional(),
-  currentPrice: z.number().min(0).optional(),
+  currentPrice: z.string().optional().transform(val => val ? parseFloat(val) : undefined),
 });
 
 export default function Profile() {
@@ -129,9 +129,6 @@ export default function Profile() {
                         type="number"
                         step="0.001"
                         {...field}
-                        onChange={(e) =>
-                          field.onChange(parseFloat(e.target.value))
-                        }
                       />
                     </FormControl>
                     <FormMessage />

@@ -22,12 +22,14 @@ export default function SavingsCalculator() {
 
   const getBestSavings = () => {
     if (!plans) return 0;
-    
+
     const currentCost = consumption * currentPrice;
     const bestPlan = plans.reduce((best, plan) => {
-      const cost = consumption * plan.pricePerKwh + plan.fixedFee;
+      const planPricePerKwh = parseFloat(plan.pricePerKwh.toString());
+      const planFixedFee = parseFloat(plan.fixedFee.toString());
+      const cost = (consumption * planPricePerKwh) + planFixedFee;
       return cost < best.cost ? { plan, cost } : best;
-    }, { plan: plans[0], cost: Infinity });
+    }, { plan: plans[0], cost: Number.POSITIVE_INFINITY });
 
     return Math.max(0, currentCost - bestPlan.cost);
   };
