@@ -13,6 +13,7 @@ import { queryClient } from "@/lib/queryClient";
 
 const profileSchema = z.object({
   name: z.string().min(2),
+  phoneNumber: z.string().min(7, "Phone number must be at least 7 digits").optional(),
   currentProvider: z.string().optional(),
   currentPrice: z.number().min(0).optional(),
 });
@@ -29,6 +30,7 @@ export default function Profile() {
     resolver: zodResolver(profileSchema),
     defaultValues: {
       name: user?.name || "",
+      phoneNumber: user?.phoneNumber || "",
       currentProvider: user?.currentProvider || "",
       currentPrice: user?.currentPrice?.toString() || "",
     },
@@ -82,6 +84,20 @@ export default function Profile() {
                     <FormLabel>{t("profile.name")}</FormLabel>
                     <FormControl>
                       <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="phoneNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Phone Number</FormLabel>
+                    <FormControl>
+                      <Input {...field} type="tel" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

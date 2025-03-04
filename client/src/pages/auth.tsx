@@ -19,6 +19,7 @@ const registerSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
   name: z.string().min(2, "Name must be at least 2 characters"),
   personalCode: z.string().length(11, "Personal code must be 11 digits"),
+  phoneNumber: z.string().min(7, "Phone number must be at least 7 digits"),
 });
 
 export default function Auth() {
@@ -40,6 +41,7 @@ export default function Auth() {
       username: "",
       name: "",
       personalCode: "",
+      phoneNumber: "",
     },
   });
 
@@ -165,6 +167,19 @@ export default function Auth() {
                         <FormLabel>Full Name</FormLabel>
                         <FormControl>
                           <Input {...field} disabled={isLoading} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={registerForm.control}
+                    name="phoneNumber"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Phone Number</FormLabel>
+                        <FormControl>
+                          <Input {...field} type="tel" disabled={isLoading} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>

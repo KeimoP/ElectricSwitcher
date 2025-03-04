@@ -7,6 +7,7 @@ export const users = pgTable("users", {
   username: text("username").notNull().unique(),
   name: text("name").notNull(),
   personalCode: text("personal_code").notNull(),
+  phoneNumber: text("phone_number"),
   currentProvider: text("current_provider"),
   currentPrice: numeric("current_price", { precision: 10, scale: 4 }),
   isSubscribed: boolean("is_subscribed").default(false),
@@ -34,8 +35,9 @@ export const planSwitches = pgTable("plan_switches", {
 export const insertUserSchema = createInsertSchema(users)
   .omit({ id: true, isSubscribed: true })
   .extend({
-    personalCode: z.string().length(11),
-    name: z.string().min(2),
+    personalCode: z.string().length(11, "Personal code must be 11 digits"),
+    name: z.string().min(2, "Name must be at least 2 characters"),
+    phoneNumber: z.string().min(7, "Phone number must be at least 7 digits").optional(),
   });
 
 export const insertPlanSchema = createInsertSchema(electricityPlans).omit({ id: true });
