@@ -8,7 +8,7 @@ export const users = pgTable("users", {
   name: text("name").notNull(),
   personalCode: text("personal_code").notNull(),
   currentProvider: text("current_provider"),
-  currentPrice: numeric("current_price"),
+  currentPrice: numeric("current_price", { precision: 10, scale: 4 }),
   isSubscribed: boolean("is_subscribed").default(false),
 });
 
@@ -16,9 +16,9 @@ export const electricityPlans = pgTable("electricity_plans", {
   id: serial("id").primaryKey(),
   provider: text("provider").notNull(),
   name: text("name").notNull(),
-  pricePerKwh: numeric("price_per_kwh").notNull(),
+  pricePerKwh: numeric("price_per_kwh", { precision: 10, scale: 4 }).notNull(),
   contractLength: integer("contract_length").notNull(), // months
-  fixedFee: numeric("fixed_fee").notNull(),
+  fixedFee: numeric("fixed_fee", { precision: 10, scale: 2 }).notNull(),
   greenEnergy: boolean("green_energy").default(false),
 });
 

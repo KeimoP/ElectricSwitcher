@@ -1,5 +1,7 @@
 import { users, electricityPlans, planSwitches } from "@shared/schema";
 import type { User, ElectricityPlan, PlanSwitch, InsertUser, InsertPlan, InsertSwitch } from "@shared/schema";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 
 export interface IStorage {
   // Users
@@ -7,109 +9,64 @@ export interface IStorage {
   getUserByPersonalCode(code: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, updates: Partial<User>): Promise<User>;
-  
+
   // Plans
   getPlans(): Promise<ElectricityPlan[]>;
   getPlan(id: number): Promise<ElectricityPlan | undefined>;
   createPlan(plan: InsertPlan): Promise<ElectricityPlan>;
-  
+
   // Switches
   createSwitch(planSwitch: InsertSwitch): Promise<PlanSwitch>;
   getUserSwitches(userId: number): Promise<PlanSwitch[]>;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<number, User>;
-  private plans: Map<number, ElectricityPlan>;
-  private switches: Map<number, PlanSwitch>;
-  private currentId: { users: number; plans: number; switches: number };
-
-  constructor() {
-    this.users = new Map();
-    this.plans = new Map();
-    this.switches = new Map();
-    this.currentId = { users: 1, plans: 1, switches: 1 };
-    
-    // Add some sample electricity plans
-    const samplePlans: InsertPlan[] = [
-      {
-        provider: "Eesti Energia",
-        name: "Fixed Basic",
-        pricePerKwh: 0.14,
-        contractLength: 12,
-        fixedFee: 2.99,
-        greenEnergy: false
-      },
-      {
-        provider: "Elektrum",
-        name: "Green Plus",
-        pricePerKwh: 0.152,
-        contractLength: 24,
-        fixedFee: 1.99,
-        greenEnergy: true
-      },
-      {
-        provider: "220 Energia",
-        name: "Flexible Start",
-        pricePerKwh: 0.138,
-        contractLength: 6,
-        fixedFee: 3.49,
-        greenEnergy: false
-      }
-    ];
-    
-    samplePlans.forEach(plan => this.createPlan(plan));
-  }
-
+export class DatabaseStorage implements IStorage {
   async getUser(id: number): Promise<User | undefined> {
-    return this.users.get(id);
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
   }
 
   async getUserByPersonalCode(code: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(u => u.personalCode === code);
+    const [user] = await db.select().from(users).where(eq(users.personalCode, code));
+    return user;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const id = this.currentId.users++;
-    const user: User = { ...insertUser, id, isSubscribed: false };
-    this.users.set(id, user);
+    const [user] = await db.insert(users).values(insertUser).returning();
     return user;
   }
 
   async updateUser(id: number, updates: Partial<User>): Promise<User> {
-    const user = await this.getUser(id);
-    if (!user) throw new Error("User not found");
-    
-    const updatedUser = { ...user, ...updates };
-    this.users.set(id, updatedUser);
-    return updatedUser;
+    const [user] = await db
+      .update(users)
+      .set(updates)
+      .where(eq(users.id, id))
+      .returning();
+    return user;
   }
 
   async getPlans(): Promise<ElectricityPlan[]> {
-    return Array.from(this.plans.values());
+    return await db.select().from(electricityPlans);
   }
 
   async getPlan(id: number): Promise<ElectricityPlan | undefined> {
-    return this.plans.get(id);
+    const [plan] = await db.select().from(electricityPlans).where(eq(electricityPlans.id, id));
+    return plan;
   }
 
   async createPlan(insertPlan: InsertPlan): Promise<ElectricityPlan> {
-    const id = this.currentId.plans++;
-    const plan: ElectricityPlan = { ...insertPlan, id };
-    this.plans.set(id, plan);
+    const [plan] = await db.insert(electricityPlans).values(insertPlan).returning();
     return plan;
   }
 
   async createSwitch(insertSwitch: InsertSwitch): Promise<PlanSwitch> {
-    const id = this.currentId.switches++;
-    const planSwitch: PlanSwitch = { ...insertSwitch, id };
-    this.switches.set(id, planSwitch);
+    const [planSwitch] = await db.insert(planSwitches).values(insertSwitch).returning();
     return planSwitch;
   }
 
   async getUserSwitches(userId: number): Promise<PlanSwitch[]> {
-    return Array.from(this.switches.values()).filter(s => s.userId === userId);
+    return await db.select().from(planSwitches).where(eq(planSwitches.userId, userId));
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
